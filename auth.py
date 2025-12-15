@@ -11,7 +11,7 @@ def get_google_auth_flow():
         st.error("Les secrets GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET ne sont pas configurés.")
         st.stop()
 
-    redirect_uri = st.secrets.get("REDIRECT_URI", "http://localhost:8501")
+    redirect_uri = st.secrets.get("REDIRECT_URI")
 
     # CORRECTION ICI : Utiliser from_client_config au lieu de from_client_secrets_dict
     return Flow.from_client_config(
