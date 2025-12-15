@@ -1,9 +1,9 @@
 import streamlit as st
 from google_auth_oauthlib.flow import Flow
 from google.oauth2 import id_token
+import requests
 import os
 from google.auth.transport.requests import Request
-import urllib.parse
 
 def get_google_auth_flow():
     """Crée et retourne un objet Flow pour l'authentification Google OAuth2."""
@@ -11,16 +11,9 @@ def get_google_auth_flow():
         st.error("Les secrets GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET ne sont pas configurés.")
         st.stop()
 
-    # IMPORTANT : Détection automatique de l'environnement
-    if os.environ.get("STREAMLIT_SHARING") == "True" or os.environ.get("STREAMLIT_SERVER"):
-        # En production sur Streamlit Cloud
-        redirect_uri = f"https://{os.environ.get('STREAMLIT_APP_NAME', 'share')}.streamlit.app"
-    else:
-        # En développement local
-        redirect_uri = "http://localhost:8501"
-    
-    st.write(f"🌐 Redirect URI utilisé : {redirect_uri}")  # Pour debug
+    redirect_uri = st.secrets.get("REDIRECT_URI", "http://localhost:8501")
 
+    # CORRECTION ICI : Utiliser from_client_config au lieu de from_client_secrets_dict
     return Flow.from_client_config(
         client_config={
             "web": {
@@ -42,51 +35,34 @@ def get_google_auth_flow():
 
 def display_login_button():
     """Affiche le bouton de connexion et retourne l'URL d'autorisation."""
-    try:
-        flow = get_google_auth_flow()
-        auth_url, _ = flow.authorization_url(
-            prompt="consent",
-            access_type="offline",
-            include_granted_scopes="true"
-        )
-        
-        # Utiliser st.link_button pour une meilleure compatibilité
-        if st.button("🔐 Se connecter avec Google", type="primary", use_container_width=True):
-            st.markdown(f'<meta http-equiv="refresh" content="0;url={auth_url}">', unsafe_allow_html=True)
-            
-    except Exception as e:
-        st.error(f"Erreur de configuration : {e}")
+    flow = get_google_auth_flow()
+    auth_url, _ = flow.authorization_url(prompt="consent")
+    
+    st.markdown(f"""
+    <a href="{auth_url}" target="_self" style="display: inline-block; padding: 0.5rem 1rem; background-color: #4285F4; color: white; border-radius: 0.25rem; text-decoration: none;">
+        Se connecter avec Google
+    </a>
+    """, unsafe_allow_html=True)
 
 def handle_auth_callback():
     """Gère le callback après l'authentification et stocke les informations de l'utilisateur."""
     code = st.query_params.get("code")
     if code and 'user_info' not in st.session_state:
         try:
-            with st.spinner("Authentification en cours..."):
-                flow = get_google_auth_flow()
-                flow.fetch_token(code=code)
-                credentials = flow.credentials
-                
-                # Vérifier le token
-                request = Request()
-                id_info = id_token.verify_oauth2_token(
-                    id_token=credentials.id_token,
-                    request=request,
-                    audience=st.secrets["GOOGLE_CLIENT_ID"],
-                )
-                
-                # Stocker les informations utilisateur
-                st.session_state.user_info = {
-                    'email': id_info.get('email'),
-                    'name': id_info.get('name'),
-                    'picture': id_info.get('picture'),
-                    'token': credentials.token
-                }
-                
-                # Nettoyer l'URL
-                st.query_params.clear()
-                st.rerun()
-                
+            flow = get_google_auth_flow()
+            flow.fetch_token(code=code)
+            credentials = flow.credentials
+            
+            # CORRECTION ICI : Utiliser un objet Request approprié
+            request = Request()
+            id_info = id_token.verify_oauth2_token(
+                id_token=credentials.id_token,
+                request=request,
+                audience=st.secrets["GOOGLE_CLIENT_ID"],
+            )
+            
+            st.session_state.user_info = id_info
+            st.rerun() # Pour nettoyer l'URL et afficher l'état connecté
         except Exception as e:
-            st.error(f"Erreur d'authentification : {str(e)}")
-            st.write("Code reçu:", code[:50] if code else "Aucun")
+            st.error(f"Erreur lors de l'authentification : {e}")
+            st.stop()
