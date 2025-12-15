@@ -603,7 +603,7 @@ def main():
                     del st.session_state[key]
             
             # Redirect to clear session token from URL
-            redirect_uri = st.secrets.get("REDIRECT_URI")
+            redirect_uri = st.secrets.get("REDIRECT_URI", "")
             st.markdown(f'<meta http-equiv="refresh" content="0; url={redirect_uri}">', unsafe_allow_html=True)
             st.stop()
     else:
@@ -765,3 +765,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
