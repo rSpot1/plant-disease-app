@@ -7,18 +7,21 @@ from google.auth.transport.requests import Request
 
 def get_google_auth_flow():
     """Crée et retourne un objet Flow pour l'authentification Google OAuth2."""
-    if "GOOGLE_CLIENT_ID" not in st.secrets or "GOOGLE_CLIENT_SECRET" not in st.secrets:
-        st.error("Les secrets GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET ne sont pas configurés.")
+    google_client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+    
+    if not google_client_id or not google_client_secret:
+        st.error("Les variables GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET ne sont pas configurées.")
         st.stop()
 
-    redirect_uri = st.secrets.get("REDIRECT_URI")
+    redirect_uri = os.environ.get("REDIRECT_URI", "")
 
     # CORRECTION ICI : Utiliser from_client_config au lieu de from_client_secrets_dict
     return Flow.from_client_config(
         client_config={
             "web": {
-                "client_id": st.secrets["GOOGLE_CLIENT_ID"],
-                "client_secret": st.secrets["GOOGLE_CLIENT_SECRET"],
+                "client_id": google_client_id,
+                "client_secret": google_client_secret,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
@@ -58,7 +61,7 @@ def handle_auth_callback():
             id_info = id_token.verify_oauth2_token(
                 id_token=credentials.id_token,
                 request=request,
-                audience=st.secrets["GOOGLE_CLIENT_ID"],
+                audience=os.environ.get("GOOGLE_CLIENT_ID"),
             )
             
             st.session_state.user_info = id_info
