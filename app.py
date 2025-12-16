@@ -27,7 +27,7 @@ st.set_page_config(
 def init_gemini():
     """Initialise l'API Gemini"""
     try:
-        api_key = st.secrets.get("GEMINI_API_KEY", "")
+        api_key = os.environ.get("GEMINI_API_KEY", "")
         if api_key:
             genai.configure(api_key=api_key)
             return True
@@ -257,7 +257,7 @@ st.markdown("""
     
     .confidence-low {
         color: #ea4335;
-        font-weight: 600;
+        font-weight: 600
     }
     
     .recommendation-section {
@@ -325,16 +325,16 @@ def init_firebase():
     try:
         if 'firebase_initialized' not in st.session_state:
             firebase_config = {
-                "type": st.secrets["FIREBASE_TYPE"],
-                "project_id": st.secrets["FIREBASE_PROJECT_ID"],
-                "private_key_id": st.secrets["FIREBASE_PRIVATE_KEY_ID"],
-                "private_key": st.secrets["FIREBASE_PRIVATE_KEY"].replace('\\n', '\n'),
-                "client_email": st.secrets["FIREBASE_CLIENT_EMAIL"],
-                "client_id": st.secrets["FIREBASE_CLIENT_ID"],
-                "auth_uri": st.secrets["FIREBASE_AUTH_URI"],
-                "token_uri": st.secrets["FIREBASE_TOKEN_URI"],
-                "auth_provider_x509_cert_url": st.secrets["FIREBASE_AUTH_PROVIDER_CERT_URL"],
-                "client_x509_cert_url": st.secrets["FIREBASE_CLIENT_CERT_URL"]
+                "type": os.environ.get("FIREBASE_TYPE"),
+                "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+                "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+                "private_key": os.environ.get("FIREBASE_PRIVATE_KEY", "").replace('\\n', '\n'),
+                "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+                "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+                "auth_uri": os.environ.get("FIREBASE_AUTH_URI"),
+                "token_uri": os.environ.get("FIREBASE_TOKEN_URI"),
+                "auth_provider_x509_cert_url": os.environ.get("FIREBASE_AUTH_PROVIDER_CERT_URL"),
+                "client_x509_cert_url": os.environ.get("FIREBASE_CLIENT_CERT_URL")
             }
             
             if not firebase_admin._apps:
@@ -342,7 +342,6 @@ def init_firebase():
                 firebase_admin.initialize_app(cred)
                 st.session_state.firebase_initialized = True
             
-        
         return firestore.client()
     except Exception as e:
         st.warning(f"Firebase non configuré: {str(e)}")
@@ -603,7 +602,7 @@ def main():
                     del st.session_state[key]
             
             # Redirect to clear session token from URL
-            redirect_uri = st.secrets.get("REDIRECT_URI", "")
+            redirect_uri = os.environ.get("REDIRECT_URI", "")
             st.markdown(f'<meta http-equiv="refresh" content="0; url={redirect_uri}">', unsafe_allow_html=True)
             st.stop()
     else:
@@ -763,6 +762,4 @@ def main():
     st.caption("Solution proposée par Barka Fidèle et Gérard M | 2025 | v1.0")
 
 if __name__ == "__main__":
-
     main()
-
