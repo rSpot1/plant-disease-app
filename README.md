@@ -64,7 +64,7 @@ streamlit run app.py
 
 ## 📊 Maladies Détectables
 
-L'application peut détecter 57 maladies sur 11 cultures :
+L'application peut détecter 57 maladies sur 14 cultures :
 - Pommier : Tavelure, pourriture noire
 - Manioc : Bactériose, stries brunes, mosaïque
 - Maïs : Rouille, brûlure des feuilles
@@ -127,7 +127,7 @@ Les contributions sont les bienvenues ! Pour contribuer :
 ## 👥 Auteurs
 
 - **Barka Fidèle** - Développement initial
-- **Gérard M** - Contribution
+- **Gérard Mbaïnabe** - Contribution
 
 ## 🙏 Remerciements
 
